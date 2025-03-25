@@ -192,6 +192,169 @@ Result: 10
 |Performance|Slightly faster because it supports partial implementation|Slightly slower due to the need for method resolution at runtime|
 |Use Case|Best for inheriting common behavior across related classes|Best for defining contracts or capabilities that unrelated classes can implement|
 
+#### Q11: what is classpath.
+
+**Answer:** 
+
+1. the classpath is a parameter that tells the Java Virtual Machine (JVM) and Java compiler where to find the compiled class files (.class) and other resources needed to run the program.
+
+2. path to the directories and JAR files that contain these files.
+
+3. There are three common ways to set the classpath:
+
+    1. Using the -cp or -classpath option:
+    `javac -cp .;lib/* MyProgram.java` and `java -cp .;lib/* MyProgram`
+
+    2. Using the CLASSPATH environment variable:
+    for windows `set CLASSPATH=.;C:\libs\someLibrary.jar` for linux `export CLASSPATH=.:/usr/local/libs/someLibrary.jar`
+
+    3. Using IDE settings.
+
+4. Classpath Formats
+    
+    1. Directories: Where .class files are stored (e.g., . for the current directory).
+    2. AR Files: Java Archive files that package multiple .class files (e.g., lib/myLibrary.jar).
+    3. Wildcard (\*): Includes all .jar files in a specified directory (e.g., lib/*).
 
 
+#### Q12: why do we prefer character array to store passwords instead of string?
+
+**Answer:** Key Differences in Security
+
+1. Immutability of Strings
+
+    - String is immutable, meaning once a String is created, its contents cannot be changed. Even if you assign a new value to the String, the old value remains in memory until garbage collection occurs. This creates a security risk because
+        
+        - The password might linger in memory for an unpredictable amount of time.
+
+        - Malicious code or memory dumps could potentially expose sensitive information
+2. Mutable Character Arrays
+
+    - char[] is mutable, meaning you can overwrite its contents once the password is no longer needed. 
+    - By setting each character in the array to '\0' (null character) or another dummy value, you minimize the risk of the password being exposed in memory.
+
+3. Memory Visibility
+
+    - Since String objects are stored in the String Pool, they may persist longer than expected.
+    - char[] values are stored in the heap, making them easier to clear immediately after use.
+
+4. Garbage Collection Timing
+
+    - Since you can't force garbage collection, an unused String containing a password may sit in memory longer than desired. On the other hand, a char[] can be explicitly modified and cleared when no longer needed.
+
+
+5. Example
+
+```
+public class PasswordDemo {
+    public static void main(String[] args) {
+        String password = "Secret123"; // Stays in memory until GC
+        System.out.println("Password stored in String: " + password);
+        // Even if 'password' is reassigned, "Secret123" may still reside in memory
+    }
+}
+```
+
+```
+import java.util.Arrays;
+
+public class SecurePasswordDemo {
+    public static void main(String[] args) {
+        char[] password = {'S', 'e', 'c', 'r', 'e', 't', '1', '2', '3'};
+        System.out.println("Password stored in char[]: " + new String(password));
+
+        // Immediately overwrite the array for security
+        Arrays.fill(password, '\0');  
+    }
+}
+```
+
+#### Q13: what is autoboxing and boxing/unboxing?
+
+**Answer:** autoboxing and unboxing refer to the automatic conversion between primitive data types (e.g., int, double) and their corresponding wrapper classes (e.g., Integer, Double).
+
+1. Autoboxing (Primitive → Wrapper): Autoboxing is the automatic conversion of a primitive type to its corresponding wrapper class when required. <br> Happens automatically when: 
+    - Assigning a primitive value to a wrapper object.
+    - Passing a primitive value to a method that expects an object.
+```
+public class AutoboxingExample {
+    public static void main(String[] args) {
+        int num = 10;       // Primitive int
+        Integer obj = num;  // Autoboxing: int → Integer
+        System.out.println("Autoboxed value: " + obj);
+    }
+}
+```
+
+2. Unboxing (Wrapper → Primitive): Unboxing is the automatic conversion of a wrapper object back into its corresponding primitive type.<br> Happens automatically when:
+
+    - Assigning a wrapper object to a primitive variable.
+    - Passing a wrapper object to a method that expects a primitive type.
+
+```
+public class UnboxingExample {
+    public static void main(String[] args) {
+        Integer obj = 20;  // Wrapper class
+        int num = obj;     // Unboxing: Integer → int
+        System.out.println("Unboxed value: " + num);
+    }
+}
+```
+
+3. Boxing (Manual Conversion): Before Java 5 (when autoboxing was introduced), developers had to manually convert primitives to wrapper objects using methods like .valueOf().
+
+```
+int num = 30;
+Integer obj = Integer.valueOf(num);  // Explicit boxing
+```
+
+|Concept|Description|Example|
+|---|---|---|
+|Autoboxing|Primitive → Wrapper (automatic)|Integer obj = 10;|
+|Unboxing|Wrapper → Primitive (automatic)|int num = obj;|
+|Boxing|Primitive → Wrapper (manual)|Integer obj = Integer.valueOf(5);|
+|Unboxing|Wrapper → Primitive (manual)|int num = obj.intValue();|
+
+#### Q14: what is aggregation in java?
+
+**Answer:** 
+1. Aggregation is a key concept in Object-Oriented Programming (OOP) that represents a "Has-a" relationship between two classes.
+
+2. It is a weaker form of association where one class contains a reference to another class, but both can exist independently.
+
+3. In simple terms:
+    - Aggregation is used when one object owns or contains another object.
+    - The contained object can exist outside the parent object’s lifecycle.
+    - It is a one-way relationship where one class depends on another.
+
+4. Key Characteristics of Aggregation:
+    - Represents a "Has-a" relationship.
+    - Both objects can exist independently.
+    - Implemented using class references (not inheritance).
+    - Aggregation is a weak association — no strict dependency.
+
+5. Example
+    -  Department has multiple Students.
+    - Even if the Department is deleted, the Students can still exist independently.
+
+6. When to Use Aggregation?
+    - When one object "Has-a" relationship with another but they are not tightly coupled.
+    - When objects can exist independently in your application design.
+    - Common in real-world modeling like Departments & Students, Library & Books, etc.
+
+#### Q15: what is composition in java?
+
+**Answer:**
+1. Composition is a design principle in Java that represents a "Has-a" relationship where one object is strongly dependent on another.
+
+2. It’s a type of association that implies a strong lifecycle dependency — if the parent object is deleted, the child object is also destroyed. 
+
+3. In simple terms:
+    - Composition = Strong "Has-a" relationship
+    - The child object cannot exist independently without the parent. 
+    - Typically implemented by having one class create and manage the instance of another class.
+
+4. Example of Composition
+    - A Human cannot live without a Heart.
+    - If the Human object is deleted, the Heart object should be deleted too.
 
