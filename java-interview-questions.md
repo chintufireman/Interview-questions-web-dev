@@ -724,9 +724,9 @@ interface Child extends Parent {
 **Answer**
 1. Method references are used to refer to methods of functional interfaces in a concise and readable way.
 2. There are four types of method references in Java:
-|Type|Syntax|Example|Lambda Expression|Method Reference|
-|---|---|---|---|---|
-|Reference to a Static Method|ClassName::staticMethod|Math::abs|num -> Math.abs(num)|Math::abs|
-|Reference to an Instance Method (on a specific object)|instance::instanceMethod|"Hello"::toUpperCase|() -> obj.someMethod()|obj::someMethod|
-|Reference to an Instance Method (on an arbitrary object of a class)|ClassName::instanceMethod|String::toUpperCase|s -> s.toUpperCase()|String::toUpperCase|
-|Reference to a Constructor|ClassName::new|ArrayList::new|() -> new Car()|Car::new|
+| Type | Syntax | Example | Lambda Expression | Method Reference |
+|------|--------|---------|------------------|------------------|
+| Reference to a Static Method | `ClassName::staticMethod` | `Math::abs` | `num -> Math.abs(num)` | `Math::abs` |
+| Reference to an Instance Method (on a specific object) | `instance::instanceMethod` | `"Hello"::toUpperCase` | `() -> obj.someMethod()` | `obj::someMethod` |
+| Reference to an Instance Method (on an arbitrary object of a class) | `ClassName::instanceMethod` | `String::toUpperCase` | `s -> s.toUpperCase()` | `String::toUpperCase` |
+| Reference to a Constructor | `ClassName::new` | `ArrayList::new` | `() -> new Car()` | `Car::new` |
