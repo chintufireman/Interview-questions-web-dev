@@ -358,3 +358,294 @@ Integer obj = Integer.valueOf(num);  // Explicit boxing
     - A Human cannot live without a Heart.
     - If the Human object is deleted, the Heart object should be deleted too.
 
+#### Q16: uses a relationship in java?
+**Answer**
+1. In Java, a "Uses-a" relationship represents a scenario where one class depends on another class to perform its function. This is also known as dependency.
+
+2. Unlike Inheritance (is-a) or Composition/Aggregation (has-a), a "Uses-a" relationship is temporary and typically involves:
+    - ✅ One class calling methods of another class
+    - ✅ Occurs via method parameters, local variables, or method calls.
+    - ✅ The dependent class does not own the object it uses; it only utilizes its functionality.
+
+3. Key Characteristics of a "Uses-a" Relationship.
+    - Typically implemented using method parameters or local variables
+    - The relationship is short-term — it exists only for the duration of a method's execution.
+    - Common in utility classes, service layers, or design patterns like dependency injection.
+
+4. Uses-a Relationship via Method Parameter:
+```
+// Engine class
+class Engine {
+    void start() {
+        System.out.println("Engine starts...");
+    }
+}
+
+// Car class (uses Engine)
+class Car {
+    void drive(Engine engine) {  // Engine object is passed as a parameter
+        System.out.println("Car is ready to drive.");
+        engine.start();         // "Uses-a" relationship
+    }
+}
+
+// Main class
+public class UsesARelationshipExample {
+    public static void main(String[] args) {
+        Engine engine = new Engine();  // Engine object created
+        Car car = new Car();
+        car.drive(engine);            // Car "uses" Engine
+    }
+}
+```
+output:
+```
+Car is ready to drive.
+Engine starts...
+```
+The Car class doesn't own the Engine; it only uses it temporarily.
+
+5. Example 2: Uses-a Relationship via Local Variable:
+The relationship exists inside a method, not as a class-level reference
+
+```
+class Printer {
+    void printDocument(String doc) {
+        System.out.println("Printing: " + doc);
+    }
+}
+
+class Office {
+    void performTask() {
+        Printer printer = new Printer();  // Local variable — temporary dependency
+        printer.printDocument("Annual Report.pdf");
+    }
+}
+
+public class UsesARelationshipExample2 {
+    public static void main(String[] args) {
+        Office office = new Office();
+        office.performTask();  // Office "uses" Printer
+    }
+}
+```
+
+output
+```
+Printing: Annual Report.pdf
+```
+
+6. Example 3: Uses-a Relationship via Return Type: Here, one class calls another class’s method that returns an object.
+
+```
+// Database class
+class Database {
+    String getData() {
+        return "User data fetched from Database";
+    }
+}
+
+// Service class that "uses" Database
+class UserService {
+    void displayUserData() {
+        Database db = new Database();   // Temporary dependency
+        System.out.println(db.getData());
+    }
+}
+
+public class UsesARelationshipExample3 {
+    public static void main(String[] args) {
+        UserService service = new UserService();
+        service.displayUserData();  // UserService "uses" Database
+    }
+}
+```
+The UserService class only depends on Database temporarily while fetching data.
+
+
+
+#### Q17: when can an object reference be cast to an interface reference?
+
+**Answer**
+1. An object reference can be cast to an interface reference if the object’s class implements that interface.
+
+2. If the class does not implement the interface, casting will result in a ClassCastException at runtime. 
+
+3. eg:
+
+Successful Casting (Valid Case)
+```
+    // Interface
+interface Animal {
+    void makeSound();
+}
+
+// Class implementing the interface
+class Dog implements Animal {
+    public void makeSound() {
+        System.out.println("Dog barks!");
+    }
+
+    void wagTail() {
+        System.out.println("Dog is wagging its tail.");
+    }
+}
+
+public class InterfaceCastingExample {
+    public static void main(String[] args) {
+        Dog dog = new Dog();       // Object reference
+        Animal animal = dog;       // Upcasting to interface reference
+        animal.makeSound();        // ✅ Allowed (Dog implements Animal)
+
+        // animal.wagTail();  // ❌ Error: Cannot access Dog-specific methods directly
+    }
+}
+```
+
+Since Dog implements Animal, the reference can safely point to dog
+
+Example 2: Explicit Casting (Downcasting)
+
+Sometimes you may need to downcast an interface reference back to a class reference to access class-specific methods.
+
+```
+public class DowncastingExample {
+    public static void main(String[] args) {
+        Animal animal = new Dog();  // Upcasting
+        Dog dog = (Dog) animal;     // Downcasting (Explicit casting)
+        dog.wagTail();              // ✅ Access Dog-specific method
+    }
+}
+```
+`Dog is wagging its tail.`
+
+Since animal is actually a Dog object in memory, downcasting it back to Dog is safe.
+
+Example 3: Invalid Casting (Throws Exception)- 
+If an object does not implement the interface, casting will result in a ClassCastException.
+
+#### Q18. How to create a thread in java?
+
+**Answer** 
+1. Extending the Thread class
+```
+class MyThread extends Thread {
+    public void run() {
+        System.out.println("Thread is running...");
+    }
+    
+    public static void main(String[] args) {
+        MyThread t1 = new MyThread();
+        t1.start(); // Starts the thread and calls the run() method
+    }
+}
+```
+
+2. Implementing the Runnable interface
+```
+class MyRunnable implements Runnable {
+    public void run() {
+        System.out.println("Thread is running...");
+    }
+    
+    public static void main(String[] args) {
+        MyRunnable myRunnable = new MyRunnable();
+        Thread t1 = new Thread(myRunnable);
+        t1.start(); // Starts the thread and calls the run() method
+    }
+}
+```
+3. Use Thread class if you don’t need to extend another class
+4. Use Runnable interface if your class already extends another class.
+
+
+#### Q19. Ways to create thread in java?
+
+**Answer**
+1. Extending Thread class
+2. Implementing Runnable interface
+3. Using an Anonymous Class
+4. Using Lambda Expression (Java 8+)
+5. Using Callable and FutureTask (For Getting Return Value)
+
+```
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
+
+class MyCallable implements Callable<String> {
+    public String call() throws Exception {
+        return "Thread execution completed!";
+    }
+
+    public static void main(String[] args) throws Exception {
+        FutureTask<String> futureTask = new FutureTask<>(new MyCallable());
+        Thread t1 = new Thread(futureTask);
+        t1.start();
+        
+        System.out.println(futureTask.get()); // Waits for thread to finish and gets the result
+    }
+}
+```
+
+6. Using Executors Framework (Best for Multiple Threads)
+
+```
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class ExecutorThread {
+    public static void main(String[] args) {
+        ExecutorService executor = Executors.newFixedThreadPool(3);
+        executor.submit(() -> System.out.println("Thread is running..."));
+        executor.shutdown();
+    }
+}
+```
+
+7. Using ThreadPoolExecutor (Advanced Thread Pool)
+
+```
+import java.util.concurrent.*;
+
+public class ThreadPoolExample {
+    public static void main(String[] args) {
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
+        
+        Runnable task = () -> System.out.println("Thread is running...");
+        
+        executor.execute(task);
+        executor.shutdown();
+    }
+}
+```
+Use this for high-performance applications needing thread pooling.
+
+8. 
+|Method|Best Use Case|
+|---|---|
+|Thread class|Simple thread creation, no need for other inheritance|
+|Runnable interface|When your class already extends another class|
+|Anonymous class|Quick, one-time use thread creation|
+|Lambda expression|Clean, short, Java 8+ style|
+|Callable & FutureTask|When a thread needs to return a result|
+|Executors framework|When managing multiple threads efficiently|
+|ThreadPoolExecutor|For fine-grained control over thread pools|
+
+#### Q20. What is the difference between notify and notifyAll?
+
+**Answer** They are used to wake up threads that are waiting on an object's monitor.
+
+1. notify()
+    - Wakes up only one randomly selected thread (if multiple threads are waiting).
+    - The exact thread to be notified is not guaranteed (depends on JVM).
+    - The other waiting threads remain in the waiting state.
+
+2. notifyAll()
+
+    - Wakes up all threads that are waiting on the object's monitor
+    - The threads still need to acquire the lock before proceeding
+    - Ensures that no thread is left waiting indefinitely
+
+3. When to Use What?
+    -  Use notify() when only one thread needs to proceed, and others can continue waiting (e.g., a single consumer in producer-consumer problem)
+    - Use notifyAll() when multiple threads need to be woken up and process data (e.g., multiple consumers waiting for tasks).
