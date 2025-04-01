@@ -649,3 +649,84 @@ Use this for high-performance applications needing thread pooling.
 3. When to Use What?
     -  Use notify() when only one thread needs to proceed, and others can continue waiting (e.g., a single consumer in producer-consumer problem)
     - Use notifyAll() when multiple threads need to be woken up and process data (e.g., multiple consumers waiting for tasks).
+
+#### Q21 what happens when we create private constructor?
+**Answer**
+
+1. Object creation from outside the class is restricted.
+2. The class cannot be instantiated directly using new ClassName().
+3. Inheritance is prevented (since a subclass cannot access a private constructor).
+4. Exception: Inner Classes Can Extend a Private Constructor Class
+
+```
+class Outer {
+    private Outer() {  // Private constructor
+        System.out.println("Outer class constructor!");
+    }
+
+    static class Inner extends Outer {  // ✅ Allowed because it's inside the same class
+        Inner() {
+            System.out.println("Inner class constructor!");
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Outer.Inner obj = new Outer.Inner();  // ✅ Works fine!
+    }
+}
+```
+
+#### Q22 what is functional interfaces?
+**Answer**
+1. Only One Abstract Method: This is the defining feature
+2. Can Have Default & Static Methods: These don’t count as abstract methods.
+3. Used in Lambda Expressions: Since they have a single abstract method.
+4. Annotated with @FunctionalInterface (Optional): This annotation helps prevent accidental addition of extra abstract methods.
+5. Common Built-in Functional Interfaces in Java:
+    - Runnable → void run()
+    - Callable
+    - Consumer
+    - Supplier
+    - Function
+    - Predicate
+6. If a child interface extends a parent functional interface without adding a new abstract method, it is still a functional interface.
+
+```
+@FunctionalInterface
+interface Parent {
+    void method1();  // Single abstract method
+}
+
+@FunctionalInterface
+interface Child extends Parent {
+    // No new abstract methods added, still a functional interface
+}
+```
+
+7. If the child interface adds a new abstract method, it is no longer a functional interface because it now has two abstract methods.
+
+```
+@FunctionalInterface
+interface Parent {
+    void method1();
+}
+
+@FunctionalInterface  // ❌ Compilation error: Not a functional interface
+interface Child extends Parent {
+    void method2();  // Second abstract method
+}
+```
+
+
+#### Q23 what is use of method reference?
+**Answer**
+1. Method references are used to refer to methods of functional interfaces in a concise and readable way.
+2. There are four types of method references in Java:
+|Type|Syntax|Example|Lambda Expression|Method Reference|
+|---|---|---|---|---|
+|Reference to a Static Method|ClassName::staticMethod|Math::abs|num -> Math.abs(num)|Math::abs|
+|Reference to an Instance Method (on a specific object)|instance::instanceMethod|"Hello"::toUpperCase|() -> obj.someMethod()|obj::someMethod|
+|Reference to an Instance Method (on an arbitrary object of a class)|ClassName::instanceMethod|String::toUpperCase|s -> s.toUpperCase()|String::toUpperCase|
+|Reference to a Constructor|ClassName::new|ArrayList::new|() -> new Car()|Car::new|
