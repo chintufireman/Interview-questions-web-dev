@@ -732,3 +732,405 @@ interface Child extends Parent {
 |Reference to an Instance Method (on an arbitrary object of a class)|ClassName::instanceMethod|String::toUpperCase|s -> s.toUpperCase()|String::toUpperCase|
 |Reference to a Constructor|ClassName::new|ArrayList::new|() -> new Car()|Car::new|
 
+#### Q24 What is exchanger class?
+
+**Answer**
+1. In Java, the Exchanger class is part of the java.util.concurrent package and is used for thread synchronization by enabling two threads to exchange objects at a synchronization point.
+
+2. It is useful in scenarios where two threads need to swap data safely without using explicit locks or shared data structures.
+
+3. Key Features of Exchanger<\T>
+    - It allows two threads to swap objects in a thread-safe manner
+    - If one thread arrives at the exchange point first, it waits until the second thread arrives.
+    - Once both threads arrive, they exchange their objects and proceed
+    - If only one thread arrives and the other never comes, the first thread blocks indefinitely (unless a timeout is set).
+
+4. Constructor
+    
+    ```
+    Exchanger<T> exchanger = new Exchanger<>();
+    ```
+5. 
+
+```
+import java.util.concurrent.Exchanger;
+
+class ExchangerExample {
+    public static void main(String[] args) {
+        Exchanger<String> exchanger = new Exchanger<>();
+
+        Thread thread1 = new Thread(() -> {
+            try {
+                String message = "Hello from Thread 1";
+                System.out.println("Thread 1 sending: " + message);
+                String response = exchanger.exchange(message);  // Exchange data
+                System.out.println("Thread 1 received: " + response);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+        Thread thread2 = new Thread(() -> {
+            try {
+                String message = "Hello from Thread 2";
+                System.out.println("Thread 2 sending: " + message);
+                String response = exchanger.exchange(message);  // Exchange data
+                System.out.println("Thread 2 received: " + response);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+        thread1.start();
+        thread2.start();
+    }
+}
+```
+output
+```
+Thread 1 sending: Hello from Thread 1
+Thread 2 sending: Hello from Thread 2
+Thread 1 received: Hello from Thread 2
+Thread 2 received: Hello from Thread 1
+```
+
+6. When to Use Exchanger
+
+    - Parallel Processing: Two threads producing and consuming data (e.g., one thread generates data while another processes it).
+    - Data Transformation: When two threads work on different parts of data and need to swap results.
+    - Avoiding Locks: When swapping objects between threads without needing explicit synchronization.
+
+#### Q25 what kind of errors are there in class throwable?
+
+**Answer** Types of Errors in Throwable
+1. Virtual Machine Errors
+    - StackOverflowError – When a thread's stack overflows due to deep or infinite recursion.
+    - OutOfMemoryError – When the JVM runs out of heap memory.
+    - InternalError – Represents an unexpected internal JVM error.  
+    - UnknownError – An unknown, unrecoverable error in the JVM
+
+2. Linkage Errors: These occur when classes cannot be loaded or linked properly
+    - ClassNotFoundException – When a required class is not found at runtime
+    - NoClassDefFoundError – When a class was compiled but is missing at runtime
+    - UnsatisfiedLinkError – When a required native library cannot be found
+    - VerifyError – When class file verification fails due to corruption or security issues
+
+3. I/O and Threading Errors
+    - ThreadDeath – Occurs when a thread is killed via stop() (deprecated).
+    - AssertionError – When an assertion fails (assert keyword in Java).
+
+#### Q26. how to make list as read only list in java?
+
+**Answer**
+
+1. 
+    - |Method|Read-Only|Truly Immutable|Java Version|
+        |---|---|---|---|
+        |Collections.unmodifiableList()|Yes|No (Original list can change)|Java 1.2+|
+        |List.of()|yes|yes|java 9+|
+        |List.copyOf()|yes|Yes (if the original is mutable)|java 10+|
+
+#### Q27. Intermediate Methods of Stream in Java?
+
+**Answer**
+
+1. In Java Streams, intermediate methods are operations that transform a stream into another stream.
+2. These methods are lazy, meaning they don’t process elements until a terminal operation is called.
+3. intermediate operations:
+    - |Method|purpose|
+        |---|---|
+        |filter(Predicate<\T>)|filters elements|
+        |map(Function<T, R>)|Transform elements|
+        |flatMap(Function<T, Stream<R>>)|Flattens nested lists|
+        |distinct()|Removes duplicates|
+        |sorted()|Sorts elements|
+        |peek(Consumer<\T>)|Debugging without modifying elements|
+        |limit(n)|Limits stream size|
+        |skip(n)|Skips elements|
+4. Final Notes
+    - Intermediate methods return a Stream, so they can be chained together
+    - They don’t execute until a terminal operation (e.g., collect(), forEach()) is called.
+
+#### Q28 terminal operator in java?
+**Answer**
+
+1. In Java Streams, terminal operations are methods that produce a result or side-effect and terminate the stream pipeline.
+
+2. Once a terminal operation is applied, the stream cannot be used again
+
+3. Summary table
+    - |Method|Purpose|
+        |---|---|
+        |forEach(Consumer<\T>)|Performs an action on each element|
+        |collect(Collector<T, A, R>)|Converts a stream into a collection|
+        |count()|Counts the number of elements|
+        |min(Comparator<T>), max(Comparator<T>)|Finds the minimum or maximum element|
+        |findFirst()|Retrieves the first element|
+        |findAny()|Retrieves any element (best for parallel streams)|
+        |anyMatch(Predicate<T>)|Checks if any element matches a condition|
+        |allMatch(Predicate<T>)|Checks if all elements match a condition|
+        |noneMatch(Predicate<T>)|Checks if no elements match a condition|
+        |reduce(BinaryOperator<T>)|Reduces elements to a single result (sum, product, etc.)|
+        |toArray()|Converts the stream to an array|
+4. final notes
+    - Terminal operations return a result or side-effect and close the stream
+    - They trigger execution of the pipeline (intermediate operations are lazy).
+    - After a terminal operation, you cannot reuse the stream.
+
+#### Q29 what is externalizable interface in java?
+
+**Answer**
+
+1. The Externalizable interface in Java is a specialized form of serialization that allows custom control over how an object is serialized and deserialized.
+
+2. It is part of the java.io package and extends the Serializable interface.
+```
+public interface Externalizable extends Serializable {
+    void writeExternal(ObjectOutput out) throws IOException;
+    void readExternal(ObjectInput in) throws IOException, ClassNotFoundException;
+}
+```
+
+3. Here’s an example of how to implement custom serialization with Externalizable
+
+```
+import java.io.*;
+
+class Person implements Externalizable {
+    private String name;
+    private int age;
+
+    // Mandatory No-Arg Constructor
+    public Person() {}
+
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    // Custom serialization
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        out.writeUTF(name);  // Writing name
+        out.writeInt(age);   // Writing age
+    }
+
+    // Custom deserialization
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        name = in.readUTF(); // Reading name
+        age = in.readInt();  // Reading age
+    }
+
+    @Override
+    public String toString() {
+        return "Person{name='" + name + "', age=" + age + "}";
+    }
+}
+
+public class ExternalizableExample {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+        // Creating object
+        Person person = new Person("Alice", 25);
+
+        // Serialization
+        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("person.ser"));
+        oos.writeObject(person);
+        oos.close();
+
+        // Deserialization
+        ObjectInputStream ois = new ObjectInputStream(new FileInputStream("person.ser"));
+        Person deserializedPerson = (Person) ois.readObject();
+        ois.close();
+
+        // Output
+        System.out.println(deserializedPerson); // Output: Person{name='Alice', age=25}
+    }
+}
+```
+
+#### Q30. Restrications on method overloading?
+
+**Answer**
+1. You cannot overload a method just by changing the return type
+
+```
+class Example {
+    void show() {}       // Method 1
+    int show() { return 10; }  // ❌ Compilation Error: Same name & parameters
+}
+```
+
+2. Overloading Cannot Differ Only by throws Clause
+
+```
+class Example {
+    void display() {}
+    void display() throws IOException {} // ❌ Compilation Error
+}
+```
+
+3. Overloading and Type Promotion (byte → short → int → long → float → double)
+    - Java allows automatic type promotion in method overloading, which can sometimes lead to ambiguity.
+
+    ```
+        class Example {
+            void test(int a) { System.out.println("int"); }
+            void test(double a) { System.out.println("double"); }
+
+            public static void main(String[] args) {
+                Example obj = new Example();
+                obj.test(5);     // Calls test(int)
+                obj.test(5.5);   // Calls test(double)
+                obj.test(5L);    // Calls test(double) because long → double promotion
+            }
+        }
+    ```
+
+4. Varargs (...) can cause ambiguity when combined with method overloading.
+
+```
+class Example {
+    void print(int a) { System.out.println("int"); }
+    void print(int... a) { System.out.println("varargs"); }
+
+    public static void main(String[] args) {
+        Example obj = new Example();
+        obj.print(5); //  Compilation Error: Ambiguous method call
+    }
+}
+```
+- Solution: Use different parameter types
+
+5. Static Methods Can Be Overloaded but Not Overridden
+
+6. Private Methods Cannot Be Overloaded in Subclasses
+
+    - A private method is not inherited, so it cannot be overloaded in a subclass
+
+    ```
+        class Parent {
+            private void show() {} // Not visible in Child
+        }
+        class Child extends Parent {
+            void show() {} // ✅ This is a new method, not overloading
+        }
+    ```
+7. Summary Table
+
+|Restriction|Allowed?|Solution|
+|---|---|---|
+|Overloading with different return types|No|Change parameters|
+|Overloading with only throws clause|No|Modify parameters|
+|Overloading with automatic type promotion|Sometimes|Avoid ambiguous cases|
+|Overloading with varargs (...)|Sometimes|Use different types|
+|Overloading static methods|Yes|No restriction|
+|Overloading private methods in subclasses|No|Define a new method|
+
+#### Q31. Static Nested Classes in Java?
+
+**Answer** - A static nested class is a class inside another class, but it is declared static. It does not need an instance of the outer class to be used.
+
+1. Key Points
+    - Can access only static members of the outer class.
+    - Does not require an instance of the outer class.
+    - Can be instantiated like a normal class.
+    - Helps in grouping related classes together.
+
+        ```
+            class Outer {
+                static class Nested {
+                    void show() {
+                    System.out.println("Inside Static Nested Class");
+                }
+            }
+        }
+        ```
+    - The Nested class is static, meaning it belongs to Outer but does not depend on an instance of Outer.
+    - How to Create an Object?
+        ```
+            public class Main {
+                public static void main(String[] args) {
+                    Outer.Nested obj = new Outer.Nested(); // ✅ No need to create Outer class instance
+                    obj.show(); // Output: Inside Static Nested Class
+                }
+            }
+        ```
+
+    - Can Static Nested Classes Access Outer Class Members?
+        - Can access static members of the outer class.
+        - Cannot access non-static (instance) members. 
+        - 
+            ```
+                class Outer {
+                      static String staticMsg = "Static Member";
+
+                        static class Nested {
+                            void display() {
+                                System.out.println(staticMsg); // ✅ Allowed
+                            }
+                        }
+                }
+
+            ```
+2. summary table
+
+    - 
+        |Feature|Static Nested Class|
+        |---|---|
+        |Requires an instance of the outer class?|No|
+        |Can access outer class static members?|Yes|
+        |Can access outer class non-static members?|No|
+        |How to create an object?|Outer.Nested obj = new Outer.Nested();|
+
+
+#### Q32 covariant type in java?
+**Answer** - In Java, Covariant Return Type means that when overriding a method, the return type of the overridden method can be a subclass of the original method’s return type.
+
+1. key points
+    - ✅ Allows method overriding with a more specific return type.
+    - ✅ Introduced in Java 5 to improve flexibility in OOP.
+    - ✅ Works only with non-primitive return types.
+    - ✅ Improves readability by avoiding unnecessary type casting.
+    - example
+        ```
+            class Parent {
+                    Parent getInstance() {  // Original method
+                    return new Parent();
+                }
+            }
+
+            class Child extends Parent {
+                @Override
+                    Child getInstance() {  // ✅ Covariant return type (Child instead of Parent)
+                        return new Child();
+                    }
+            }
+
+        ```
+
+2. Summary table
+
+    |Feature|Covariant Return Type|
+    |---|---|
+    |Return Type|Can be a subtype of the parent’s return type|
+    |Primitive Types|Not allowed|
+    |Helps Avoid|Explicit typecasting|
+    |Introduced In|Java 5|
+
+
+#### Q33 What is join in thread?
+
+**Answer** - The join() method in Java is used to pause the execution of the current thread until another thread finishes its execution.
+
+```
+public final void join() throws InterruptedException
+public final void join(long millis) throws InterruptedException
+```
+`t1.join(1000); // Main thread waits max 1 sec for t1 to finish`
+
+- Why Use join?
+    - Ensures sequential execution of threads
+    - Helps synchronize dependent tasks
+    - Avoids unexpected race conditions
+    - Think of join() as saying: "Wait for this thread to finish before moving forward!"
