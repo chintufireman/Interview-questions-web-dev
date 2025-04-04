@@ -1134,3 +1134,256 @@ public final void join(long millis) throws InterruptedException
     - Helps synchronize dependent tasks
     - Avoids unexpected race conditions
     - Think of join() as saying: "Wait for this thread to finish before moving forward!"
+
+#### Q34 Diff in string literal and new String?
+
+**Answer**: Difference Between String Literal & new String() in Java
+
+|Feature|String Literal ("text")|new String("text")|
+|---|---|---|
+|Storage|String Pool (Heap)|Heap Memory (outside pool)|
+|Memory Efficiency|More efficient (Reuses existing object)|Less efficient (Always creates a new object)|
+|Object Creation|If already exists, no new object is created|Always creates a new object|
+|Example|String s1 = "Hello";|String s2 = new String("Hello");|
+|Comparison (==)|Same object if same literal|Different object|
+
+#### Q35 Tell the collection hierarchy
+
+**Answer**: Java Collection Framework Hierarchy
+1. Root Interface:
+Collection\<E> (extends Iterable\<E>)
+
+2. Main Subinterfaces
+    - List\<E> → Ordered, duplicates allowed
+    - Set\<E> → Unordered, unique elements
+    - Queue\<E> → FIFO ordering
+    - Deque\<E> → Double-ended queue
+
+3. Implementations:
+
+    List Implementations:
+        - ArrayList → Fast read, slow insert/remove
+        - LinkedList → Fast insert/remove, slow read
+        - Vector → Synchronized
+        - Stack → LIFO
+
+    Set Implementations:
+        - HashSet → Unordered, no duplicates
+        - LinkedHashSet → Ordered by insertion
+        - TreeSet → Sorted order (Red-Black Tree)
+    
+    Queue/Deque Implementations:
+        - PriorityQueue → Ordered by priority
+        - ArrayDeque → Faster than Stack
+    
+    Map (Not a Collection, but Related):
+        - HashMap → Unordered, fast lookup
+        - LinkedHashMap → Insertion order
+        - TreeMap → Sorted order
+        - Hashtable → Thread-safe
+
+    Lists = Ordered, Sets = Unique, Queues = FIFO, Maps = Key-Value
+
+#### Q36 Can we create linkedlist without collection?
+
+**Answer**: Yes! We can implement a LinkedList manually without using Java's LinkedList class from java.util.
+
+1. Manual LinkedList Implementation:
+
+    ```
+        class Node {
+            int data;
+            Node next; // Points to the next node
+
+            Node(int data) {
+                 this.data = data;
+                 this.next = null;
+            }
+        }
+
+        class MyLinkedList {
+                Node head;
+
+            // Add a node at the end
+             void add(int data) {
+                    Node newNode = new Node(data);
+                        if (head == null) {
+                            head = newNode;
+                            return;
+                        }
+                Node temp = head;
+                while (temp.next != null) {
+                    temp = temp.next;
+                }
+                temp.next = newNode;
+            }
+
+            // Print the linked list
+            void print() {
+                Node temp = head;
+                while (temp != null) {
+                    System.out.print(temp.data + " -> ");
+                    temp = temp.next;
+                }
+                System.out.println("null");
+            }
+        }
+
+            public class Main {
+                public static void main(String[] args) {
+                    MyLinkedList list = new MyLinkedList();
+                    list.add(10);
+                    list.add(20);
+                    list.add(30);
+                    list.print(); // Output: 10 -> 20 -> 30 -> null
+                }
+            }
+
+    ```
+
+#### Q37 Initialization-on-demand Holder Idiom?
+
+**Answer**: Initialization-on-Demand Holder Idiom (IoDH)
+
+1. It is a lazy-loaded, thread-safe singleton implementation in Java using a static inner class.
+2. How it Works?
+    - The inner static class (Holder) is not loaded until it is referenced.
+    - JVM guarantees thread safety during class loading.
+    - It avoids synchronization overhead of synchronized or volatile keywords.
+
+3. example
+    - 
+        ```
+            public class Singleton {
+                private Singleton() {} // Private constructor
+
+                private static class Holder {
+                    private static final Singleton INSTANCE = new Singleton();
+                }
+
+                public static Singleton getInstance() {
+                    return Holder.INSTANCE;
+                }
+            }
+
+        ```
+4. It is thread-safe because:
+    - Class loading is thread-safe in Java. The Holder class is loaded only when getInstance() is called.
+    - Static final variable ensures only one instance is created.
+    - No need for synchronization—JVM handles it during class loading.
+    - Thus, no race conditions and no extra overhead.
+
+#### Q38 what is difference between string and stringbuffer??
+**Answer**
+
+1. summary table
+    - |Feature|String (Immutable)|StringBuffer (Mutable)|
+        |---|---|---|
+        |Mutability|Immutable (new object on change)|Mutable (modifies the same object)|
+        |Performance|Slower (creates new objects)|Faster (modifies in-place)|
+        |Thread Safety|Yes (Immutable, so thread-safe)|Yes (synchronized methods)|
+        |Memory Usage|High (due to new object creation)|Low (same object is modified)|
+        |Usage|When few modifications are needed|When frequent modifications are required|
+    - 
+        ```
+            String s = "Hello";  
+            s += " World";  // New object created  
+
+            StringBuffer sb = new StringBuffer("Hello");  
+            sb.append(" World");  // Same object modified  
+
+        ```
+
+#### Q39 what is the difference between final and finally and finalize?
+
+**Answer**:
+1. difference:
+
+Keyword|Usage|Purpose
+---|---|---
+final|Modifier (for variables, methods, and classes)|Prevents modification (constant variables, non-overridable methods, non-inheritable classes)
+finally|Block (with try-catch)|Ensures code execution (even if an exception occurs)
+finalize|Method (protected void finalize())|Called by the GC (Garbage Collector) before object destruction
+
+2. example usage:
+
+    final (Prevents modification)   
+    ```
+        final int x = 10;  // Cannot change value
+        final class A {}    // Cannot be inherited
+    ```
+    finally (Ensures execution)
+    ```
+            try {
+                 int a = 5 / 0;
+            } catch (Exception e) {
+                System.out.println("Exception caught");
+            } finally {
+                System.out.println("This will always execute");
+            }
+    ```
+    finalize() (Called before GC removes an object)
+
+    ```
+        class Test {
+            protected void finalize() {
+                System.out.println("Object is being garbage collected");
+            }
+        }
+    ```
+
+#### Q40 Concurrent implementation for collections?
+
+**Answer**: Java provides thread-safe collection implementations in the java.util.concurrent package to handle concurrent modifications efficiently.
+
+1. Concurrent List: CopyOnWriteArrayList
+
+    - Thread-safe alternative to ArrayList
+    - Uses copy-on-write mechanism (creates a new array on modification)
+    - Best for read-heavy scenarios (expensive for writes)
+    -
+        ```
+            CopyOnWriteArrayList<Integer> list = new CopyOnWriteArrayList<>();
+            list.add(10);  // No ConcurrentModificationException
+        ```
+2. Concurrent Set: CopyOnWriteArraySet, ConcurrentSkipListSet
+
+    - CopyOnWriteArraySet → Internally uses CopyOnWriteArrayList, best for small datasets with rare updates
+    - ConcurrentSkipListSet → Sorted and scalable
+    - 
+        ```
+            CopyOnWriteArraySet<Integer> set = new CopyOnWriteArraySet<>();
+            set.add(5);
+        ```
+3. Concurrent Map: ConcurrentHashMap, ConcurrentSkipListMap
+
+    - ConcurrentHashMap → Thread-safe alternative to HashMap, no locking on reads (only locks specific buckets on write)
+    - ConcurrentSkipListMap → Sorted version of ConcurrentHashMap
+    -
+        ```
+            ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>();
+            map.put("key", 100);
+        ```
+
+4. Concurrent Queue: ConcurrentLinkedQueue, ArrayBlockingQueue, LinkedBlockingQueue
+    - ConcurrentLinkedQueue → Non-blocking, thread-safe Queue (best for high-throughput applications)
+    - ArrayBlockingQueue → Fixed-size, blocking queue (good for producer-consumer problems)
+    -
+        ```
+            Queue<Integer> queue = new ConcurrentLinkedQueue<>();
+            queue.offer(1);
+        ```
+5. Concurrent Deque: ConcurrentLinkedDeque, LinkedBlockingDeque
+    - ConcurrentLinkedDeque → Non-blocking, best for multi-threaded double-ended operations
+    - LinkedBlockingDeque → Blocking version, useful for bounded queues
+
+6. key takeaway:
+
+    Collection Type|Non-Thread Safe|Thread-Safe Alternative
+    ---|---|---
+    ArrayList|✅|CopyOnWriteArrayList
+    HashSet|✅|CopyOnWriteArraySet
+    HashMap|✅|ConcurrentHashMap
+    TreeMap|✅|ConcurrentSkipListMap
+    Queue|✅|ConcurrentLinkedQueue, ArrayBlockingQueue
+    Deque|✅|ConcurrentLinkedDeque, LinkedBlockingDeque
