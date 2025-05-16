@@ -738,3 +738,207 @@ No TODOs or commented code|Clean production-ready code
 5. Commit the Merge: git commit.
 
 6. Push the Changes to Bitbucket: git push origin main
+
+
+### memory management and types
+
+**Answer:**
+
+1. Memory Management is the process of:
+    - Allocating
+    - Using, and
+    - Freeing memory in a program to prevent memory leaks or crashes.
+
+2. Types of Memory (in most programming languages):
+    Memory Type|Description|Examples
+    ---|---|---
+    Stack|Stores method/function calls and local variables. LIFO (Last In, First Out).|Local variables inside a method. Method calls
+    Heap|Stores dynamically allocated memory. Objects and reference types live here.|new keyword in Java.
+    Static/Global|Stores global variables and static variables. Allocated at compile time| static fields in Java
+    Code (Text)|Contains compiled instructions (machine code).|Actual executable code
+
+3. Memory Management Techniques:
+    Language|Manual / Automatic|Details
+    ---|---|---
+    Java|Automatic (Garbage Collector)|JVM tracks objects not referenced anymore and removes them.
+
+4. Common Memory Problems.
+    Problem|Meaning
+    ---|---
+    Memory Leak|Memory is not freed even after it’s not used.
+    Dangling Pointer|Pointer refers to memory that was freed.
+    Stack Overflow|Too many nested function calls.
+    Out of Memory|Heap is full and cannot allocate new objects.
+
+5. example:
+    ```
+        public class Test {
+            public static void main(String[] args) {
+                int a = 10;                  // Stack
+                String name = "John";       // Stack + Heap (String in heap, reference in stack)
+                Student s = new Student();  // Object in Heap
+            }
+        }
+    ```
+
+### can u tell me how to print 1 to 100 using executors
+**Answer**
+1. Without sequence and order:
+    ```
+        public class PrintNumbersWithExecutors {
+
+            public static void main(String[] args) {
+                // Create a thread pool with fixed number of threads
+                ExecutorService executor = Executors.newFixedThreadPool(10);
+
+                for (int i = 1; i <= 100; i++) {
+                    int number = i;  // need a final or effectively final variable for lambda
+
+                    // Submit a task to print the number
+                    executor.submit(() -> {
+                        System.out.println("Number: " + number + " printed by " + Thread.currentThread().getName());
+                    });
+                }
+
+                // Shutdown the executor gracefully
+                executor.shutdown();
+            }
+        }
+    ```
+
+2. with sequence:
+
+    ```
+        import java.util.concurrent.ExecutorService;
+        import java.util.concurrent.Executors;
+
+        public class OrderedPrinting {
+
+            public static void main(String[] args) {
+                ExecutorService executor = Executors.newSingleThreadExecutor();
+
+                for (int i = 1; i <= 100; i++) {
+                    int number = i;
+                    executor.submit(() -> {
+                        System.out.println("Number: " + number);
+                    });
+                }
+
+                executor.shutdown();
+            }
+        }
+    ```
+
+### Spring Security Request Flow
+
+**Answer**
+
+1. Spring Security Filter Chain intercepts the request
+    - Before your controller sees the request, Spring Security adds a chain of servlet filters
+    - The filters include important ones like
+        - SecurityContextPersistenceFilter
+        - UsernamePasswordAuthenticationFilter
+        - ExceptionTranslationFilter
+        - FilterSecurityInterceptor
+    - These filters handle authentication, authorization, and security context management
+
+2. SecurityContextPersistenceFilter loads the SecurityContext
+    - This filter checks if the user is already authenticated (e.g., via a session).
+    - Loads SecurityContext from the HttpSession if present.
+
+3. Authentication occurs (if needed)
+    - If the user is not authenticated yet and tries to access a protected resource
+    - UsernamePasswordAuthenticationFilter kicks in (for form login)
+    - Extracts credentials from the request (like username & password).
+    - Calls AuthenticationManager to authenticate
+4. AuthenticationManager & Provider
+    - AuthenticationManager delegates to one or more AuthenticationProviders
+    - Each provider tries to verify the credentials (e.g., against a database, LDAP)
+    - If successful, returns an authenticated Authentication object
+5. SecurityContext is updated
+    - The authenticated Authentication object is stored inside the SecurityContext
+    - SecurityContext is saved in the session by SecurityContextPersistenceFilter
+6. Authorization happens
+    - Once authenticated, the request moves on
+    - FilterSecurityInterceptor checks if the user has permission (roles, authorities) to access the requested URL or method.
+    - This is done via configured AccessDecisionManager and voters
+7. Request proceeds to the controller
+    - If authorized, the request reaches your controller/business logic
+    - You can access the current user’s details from SecurityContextHolder.getContext().getAuthentication().
+
+8. summary diagram:
+
+    Client Request
+        ↓
+    Spring Security Filter Chain
+        ↓
+    SecurityContextPersistenceFilter (load SecurityContext)
+        ↓
+    Authentication Filter (e.g., UsernamePasswordAuthenticationFilter)
+        ↓
+    AuthenticationManager -> AuthenticationProvider(s)
+        ↓
+    Update SecurityContext (authenticated)
+        ↓
+    FilterSecurityInterceptor (Authorization)
+        ↓
+    Controller (if authorized)
+        ↓
+    Response
+
+### Docker commands
+**Answer**
+1. Important Docker Commands.
+
+    Command|What it does
+    ---|---
+    docker --version|Check Docker version
+    docker pull image|Download an image from Docker Hub
+    docker images|List all downloaded images
+    docker run -it --name mycontainer image|Run a container interactively with a name
+    docker ps|List running containers
+    docker ps -a|List all containers (running and stopped)
+    docker stop 'container_id/name'|Stop a running container
+    docker rm container_id/name|Remove a stopped container
+    docker rmi image_id/name|Remove an image
+    docker logs container_id/name|View logs of a container
+    docker exec -it container /bin/bash |Open bash shell inside running container
+    docker build -t image_name:tag|Build Docker image from Dockerfile in current directory
+    docker-compose up|Start services defined in docker-compose.yml
+    docker-compose down|Stop and remove containers/services from docker-compose
+
+2. Basic Dockerfile Syntax 
+    ```
+        # Use a base image
+        FROM openjdk:11
+
+        # Set working directory inside container
+        WORKDIR /app
+
+        # Copy files from host to container
+        COPY target/myapp.jar /app/myapp.jar
+
+        # Expose port
+        EXPOSE 8080
+
+        # Run the application
+        CMD ["java", "-jar", "myapp.jar"]
+
+        FROM — Base image to start with
+
+        WORKDIR — Directory inside container where commands run
+
+        COPY — Copy files/folders from host to container
+
+        RUN — Run commands during image build (like install packages)
+
+        EXPOSE — Document which port container listens on
+
+        CMD — Command to run when container starts
+
+        ENTRYPOINT — Similar to CMD but used to set main command with fixed args
+
+        ENV — Set environment variables
+    ```
+    
+
