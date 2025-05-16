@@ -440,3 +440,301 @@ public class Example {
     - Logging & Monitoring
         - Always log exceptions with message key and offset
         - Use tools like ELK, Prometheus + Grafana to track failures
+
+### JWT Token Structure
+**Answer**
+
+1. Header: Tells what algorithm is used to sign the token
+    ```
+    {
+    "alg": "HS256",
+    "typ": "JWT"
+    }
+
+    ```
+    Encoded Base64 → 1st part of JWT
+2. Payload: Contains the claims (data)
+    
+    ```
+        {
+            "sub": "1234567890",
+            "name": "John Doe",
+            "role": "ADMIN",
+            "iat": 1715840000,
+            "exp": 1715843600
+        }
+    ```
+    Encoded Base64 → 2nd part of JWT
+
+3. Signature: Ensures the token is not tampered with
+
+### Spring Reactive vs Spring Cloud
+
+**Answer**:
+1. table:- 
+    |Feature|Spring Reactive|Spring Cloud|
+    |---|---|---|
+    |Purpose|Build non-blocking, reactive applications|Build and manage distributed microservices|
+    |Core Module|Spring WebFluxMultiple: Eureka, Config, Gateway, Sleuth, etc|
+    |Programming Style|Reactive, event-driven|Mostly imperative (but supports reactive via WebFlux)|
+    |Concurrency Handling|Uses Reactor (Mono, Flux), no thread blocking|Depends on underlying modules (blocking or reactive)|
+    |Use Case|High-load APIs, streaming, real-time apps|Service discovery, config management, resiliency, tracing|
+    |Key Tools|WebFlux, Reactor|Eureka, Gateway, Config Server, Hystrix, Zipkin|
+    |Built On|Project Reactor|Spring Boot + Netflix OSS or newer replacements|
+    |Focus Area|App behavior and responsiveness|System-level infrastructure for microservices|
+
+### Spring Cloud: Overview & Architecture
+
+**answer**: Spring Cloud is a set of tools and libraries for building cloud-native microservices.
+ 
+ 1. Key Components of Spring Cloud.
+    |Component|Description|
+    |---|---|
+    |Spring Cloud Config|Centralized configuration management (reads from Git, file, etc.)|
+    |Eureka|Service Registry for service discovery|
+    |Spring Cloud Gateway|API Gateway for routing, rate-limiting, filtering|
+    |Spring Cloud LoadBalancer|Client-side load balancing (alternative to Netflix Ribbon)|
+    |Spring Cloud OpenFeign|Declarative REST client, integrates with service discovery|
+    |Spring Cloud Sleuth|Distributed tracing with unique request IDs|
+    |Spring Cloud Zipkin|Works with Sleuth for trace visualization|
+    |Spring Cloud Bus|Broadcast configuration updates using messaging (e.g., Kafka, RabbitMQ)|
+    |Resilience4j|Circuit breaker and fault tolerance (replaces Hystrix)|
+
+2. Typical Flow
+    - Startup: Services register with Eureka Server
+    - Discovery: Feign clients or Gateway resolve services via Eureka.
+    - Config: Services pull config from Spring Cloud Config Server.
+    - Routing: Gateway routes incoming requests to the right service.
+    - Tracing: Sleuth generates trace IDs, and Zipkin collects them.
+    - Resilience: Resilience4j provides retries, fallback, and circuit breakers.
+
+3. Use Cases Solved by Spring Cloud
+    - Decentralized service registration & discovery
+    - Centralized configuration
+    - Load balancing and routing
+    - Distributed tracing
+    - Circuit breaking and fallback
+    - API gateway management
+
+### NFR – Non-Functional Requirements
+
+**Answer**: Non-Functional Requirements (NFRs) define how a system performs its tasks, rather than what it does (which is handled by Functional Requirements).
+
+1. Common Types of NFRs
+
+|NFR Type|Description|
+|---|---|
+|Performance|Response time, throughput, latency, resource usage|
+|Scalability|Ability to handle growth in load or users|
+|Availability|System uptime (e.g., 99.9% SLA)|
+|Reliability|System consistency over time; failure recovery|
+Security|Authentication, authorization, data encryption, vulnerability protection
+Maintainability|Ease of fixing issues, upgrading, or modifying the system
+Usability|User interface clarity, user-friendliness
+Portability|Ability to run on different platforms/environments
+Compliance|Adherence to legal, regulatory, or industry standards
+Disaster Recovery|Backup, failover, and recovery plans in case of system failure
+
+2. Example: If you're designing a REST API for a banking app
+    - Functional requirement: User can transfer money
+    - Non-functional requirement: The API must respond in < 200ms, and must be available 99.99% of the time, with TLS encryption.
+
+3. Non-Functional Requirements (NFR) Template:
+    Category|Requirement|Metric / Target
+    ---|---|---
+    Performance|API should respond within acceptable time|≤ 200ms for 95% of requests
+    Scalability|System must handle increased load without performance degradation|Scale to 10x user traffic
+    Availability|System should be available round the clock|99.99% uptime (≈ 5 minutes/month downtime)
+    Reliability|System must recover from failures automatically|Retry mechanism, auto failover in place
+    Security|Data must be secure in transit and at rest|Use HTTPS + AES-256 encryption
+    Maintainability|Easy to deploy updates without downtime|Blue-Green Deployment / CI/CD enabled
+    Observability|System should be monitorable and traceable|Logs, metrics, traces via Prometheus/Grafana
+    Usability|UI should be simple and intuitive|90% of users should complete tasks in < 3 steps
+    Portability|System should run on multiple environments|Dockerized, cloud-agnostic design
+    Compliance|Meet industry or legal standards|GDPR, HIPAA, PCI-DSS as per domain
+    Disaster Recovery|System should recover from disaster quickly|RTO: 30 mins, RPO: 15 mins
+
+4. Definitions:
+    - RTO (Recovery Time Objective): Max time to restore system after failure.
+    - RPO (Recovery Point Objective): Max acceptable data loss window.
+
+### webclient vs resttemplate
+**Answer**
+1. RestTemplate Example (Blocking)
+
+    ```
+    RestTemplate restTemplate = new RestTemplate();
+    String response = restTemplate.getForObject("http://example.com/api", String.class);
+    System.out.println(response);
+    ```
+2. WebClient Example (Non-blocking)
+
+    ```
+        WebClient webClient = WebClient.create();
+        webClient.get()
+        .uri("http://example.com/api")
+        .retrieve()
+        .bodyToMono(String.class)
+        .subscribe(System.out::println);
+    ```
+
+### how do we test our microservices
+**Answer**
+1. Unit Testing:
+    - Test individual components (services, controllers, repositories)
+    - Use frameworks like JUnit, Mockito for mocking dependencies
+    - Fast and isolated tests
+
+2. Integration Testing:
+    - Test interaction between components within a microservice
+    - Test DB access, API endpoints, message brokers, etc
+    - Use Spring Boot Test with in-memory databases (H2), or embedded Kafka/RabbitMQ.
+    - Use TestRestTemplate or WebTestClient to test REST endpoints.
+
+3. Contract Testing
+    - Ensure service interfaces between microservices match expectations.
+    - Tools: Pact, Spring Cloud Contract.
+    - Useful for consumer-driven contracts to avoid breaking changes.
+
+4. End-to-End (E2E) Testing
+    - Test full workflows across multiple microservices
+    - Usually done in a staging environment
+    - Tools: Cypress, Selenium, Postman/Newman
+
+5. Performance Testing
+    - Test service behavior under load
+    - Tools: JMeter, Gatling, Locust
+
+6. Chaos Testing
+    - Introduce failures to test resilience
+    - Tools: Chaos Monkey or custom fault injection
+
+7. API Testing
+    - Test REST APIs for correctness and error handling
+    - Tools: Postman, Swagger UI, RestAssured.
+
+### Quality Gates – in CI/CD & Code Quality
+
+**Answer**: Quality Gates are a set of rules or conditions that code must meet before it can be merged, deployed, or released. They ensure your codebase maintains high quality and reliability.
+
+1. Common Quality Gate Conditions:
+
+Check|Purpose
+---|---
+No Critical or Blocker Bugs|Avoid severe defects in production
+Coverage Threshold (e.g., 80%)|Ensure enough unit test coverage
+No Vulnerabilities|Avoid known security issues (e.g., via SonarQube)
+No Code Smells|Improve maintainability and readability
+Low Technical Debt|Keep refactoring cost under control
+All Tests Pass|Ensure code correctness
+Static Code Analysis|Enforce coding standards, e.g., naming
+No TODOs or commented code|Clean production-ready code
+
+2. Tools That Support Quality Gates
+    - SonarQube: Most popular for quality gates + reports
+    - GitHub Actions + linters: Code style, lint, test checks
+    - Jenkins + SonarQube: CI pipeline integration for quality gates
+    - Azure DevOps / GitLab CI: Built-in support for gates
+
+3. Example: Fail if:
+    - Bugs > 0
+    - Coverage < 80%
+    - Duplicated Lines > 3%
+    - Vulnerabilities > 0
+
+### integration testing how u do
+
+**Answer**: Integration testing checks whether different parts of a service (controllers, services, DB, external APIs, message brokers) work together as expected.
+
+1. Framework:
+    - @SpringBootTest – loads full application context.
+    - @AutoConfigureMockMvc or @WebTestClient for HTTP calls.
+
+2. Test Tools:
+    - In-memory DB: H2 or TestContainers for PostgreSQL/MySQL.
+    - Mock external APIs: WireMock.
+    - Embedded Kafka/RabbitMQ (if needed)
+3. Sample Test (REST + DB):
+    ```
+        @SpringBootTest
+        @AutoConfigureMockMvc
+        class UserControllerIntegrationTest {
+
+            @Autowired
+            private MockMvc mockMvc;
+
+            @Autowired
+            private UserRepository userRepository;
+
+            @BeforeEach
+            void setUp() {
+                userRepository.save(new User("John", "john@mail.com"));
+            }
+
+            @Test
+            void testGetUser() throws Exception {
+                mockMvc.perform(get("/users/1"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.name").value("John"));
+            }
+        }
+
+    ```
+
+4. Sample Test (WebClient-based service):
+    ```
+        @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+        class WebClientIntegrationTest {
+
+            @Autowired
+            private WebTestClient webTestClient;
+
+            @Test
+            void testGetEndpoint() {
+                webTestClient.get().uri("/api/data")
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody()
+                    .jsonPath("$.id").isEqualTo(1);
+            }
+        }
+    ```
+5. What I Validate
+    - REST endpoint + DB flow
+    - Response structure
+    - HTTP status codes
+    - Error handling (404, 500).
+    - Interaction with Kafka, Redis, external services (mocked)
+
+### how u resolve merge conflict in bitbuket
+**Answer**: It happens when two branches have changes to the same part of the same file, and Git doesn’t know which one to keep.
+
+1. Fetch and Checkout the Branch: Start by fetching the latest code and checking out the branch you want to merge into (usually main or develop):
+    ```
+        git fetch origin
+        git checkout main
+        git pull origin main
+    ```
+2. Merge the Feature Branch: Try merging the feature branch (e.g., feature-branch) into main.
+    ```
+        Try merging the feature branch (e.g., feature-branch) into main
+    ```
+    - If there's a conflict, Git will alert you:
+        ```
+            Auto-merging filename
+            CONFLICT (content): Merge conflict in filename
+            Automatic merge failed; fix conflicts and then commit the result.
+        ```
+3. Resolve the Conflict: Open the conflicted file. You'll see conflict markers like
+    ```
+        <<<<<<< HEAD
+        Current branch changes
+        =======
+        Incoming changes from feature-branch
+        >>>>>>> feature-branch
+    ```
+4. Mark File as Resolved: `git add filename`
+
+5. Commit the Merge: git commit.
+
+6. Push the Changes to Bitbucket: git push origin main

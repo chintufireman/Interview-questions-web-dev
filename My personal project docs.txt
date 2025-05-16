@@ -1,0 +1,129 @@
+5 Interview Q&A for Your Fake Networking Project
+1. Can you describe the project you worked on?
+Answer:
+
+I worked on a Real-time Network Monitoring and Event Processing System.
+We built microservices using Spring Boot to monitor network events like IP status, system pings, service health.
+We used Kafka to stream these network events in real-time between services, and Redis caching to store frequently accessed event data for faster response times.
+The platform helped in early detection of network issues and improved overall system reliability.
+
+2. Why did you use Kafka in your project?
+Answer:
+
+We used Kafka because our system needed to handle a high volume of real-time network events, like status updates and alerts.
+Kafka allowed us to stream events asynchronously between services in a scalable and reliable way, without overloading the backend.
+It helped maintain system performance even when event traffic was high.
+
+3. What was the role of Redis in your system?
+Answer:
+
+Redis was used for caching frequently accessed data, such as network event results and health check statuses.
+By caching the latest results, we reduced unnecessary database or API hits and improved the response time of the platform significantly.
+This also helped the system handle a larger number of user queries without slowing down.
+
+4. How did you ensure reliability in your services?
+Answer:
+
+We wrote unit and integration tests using JUnit and Mockito to catch bugs early.
+Also, we implemented retry mechanisms for Kafka consumers in case of failures and fallback strategies to handle bad network data.
+We focused on building fault-tolerant services to maintain high system availability even during partial failures.
+
+5. What challenges did you face during the project?
+Answer:
+
+One challenge was handling sudden spikes in event traffic without delaying processing.
+We tuned Kafka consumer configurations, increased partition counts, and optimized Redis caching to handle peak loads.
+Another challenge was ensuring that service communication was consistent, for which we applied proper error handling and standardized APIs between microservices.
+
+
+6. deployment strategy:-
+1. The services were deployed using a modular deployment strategy on on-premise Linux servers. Each microservice was packaged as a standalone Spring Boot application (fat JAR) and deployed independently via basic shell scripts.
+
+2. Kafka and Redis were set up on dedicated internal servers to ensure high availability and low-latency processing.
+
+3. Configuration management was handled through centralized properties files, and version control was maintained via Git.
+
+4. Post-deployment validation was done using REST API tools and log analysis to verify service health and integration correctness.
+
+
+
+7. Key Design Patterns You Can Say You Used:
+1. Builder Pattern
+Used for creating complex objects (like API request/response models or domain objects) step-by-step in a readable way.
+
+Example: Used Builder pattern to construct response DTOs from multiple data sources like customer profile, IP details, and subscription records.
+
+2. Factory Pattern
+Used when creating objects like Kafka producers, Redis connections, or choosing strategies for troubleshooting logic.
+
+Example: Implemented a factory to initialize the appropriate troubleshooting strategy (e.g., by system: Billing, Provisioning, Network).
+
+3. Strategy Pattern
+Used for encapsulating multiple troubleshooting flows — especially when different systems have different logic.
+
+Example: Used Strategy pattern to separate troubleshooting logic for Billing, Provisioning, and IP systems — making it easier to plug in new logic.
+
+4. Template Method Pattern (Spring Framework uses it internally)
+Used in service layer flow where the high-level troubleshooting steps are fixed, but parts of the logic can be overridden.
+
+Example: Defined a template for "troubleshoot flow" with abstract steps like fetchData(), validate(), and buildResult(), allowing modules to override specific steps.
+
+5. Singleton Pattern
+Spring-managed beans like Kafka config, Redis config, service classes are effectively singletons by default.
+
+Example: Kafka producers, Redis config, and cache service were defined as Spring beans to ensure a single instance per application.
+
+6. Proxy Pattern (via AOP in Spring)
+Used for logging, performance tracking, and retry logic using Spring AOP.
+
+Example: Added logging and retry behavior on specific API methods using @Around aspect and @Retryable.
+
+8. Microservice Architecture Pattern Used:
+Event-Driven Architecture + Saga Pattern (Choreography)
+1. Event-Driven Architecture
+You used Kafka as the backbone for communication between services.
+
+What it means: Services publish and subscribe to events asynchronously — e.g., CustomerUpdated, IPAssigned, SubscriptionFailed.
+
+Why it fits your project: Your system listens to updates from other systems (like Billing, IP, Provisioning) and reacts to inconsistencies in data — this is a classic event-driven approach.
+
+2. Saga Pattern (Choreography-based)
+Instead of a single service coordinating the full process, each service reacts to events and performs its part.
+
+Example scenario:
+
+Billing Service emits BillingCreated
+
+IP Service listens and emits IPAssigned
+
+Troubleshooting Module listens to both, verifies consistency, and raises alerts if needed
+
+Why it’s choreography: There’s no central orchestrator — services react to events and emit new ones.
+
+Optional (Mention with caution):
+CQRS if you split read/write models (but avoid unless you did)
+
+Outbox Pattern if asked about reliability with Kafka (for advanced interviews)
+
+
+
+
+
+
+
+
+
+NFR
+| **Category**          | **Requirement**                                                 | **Metric / Target**                                |
+| --------------------- | --------------------------------------------------------------- | -------------------------------------------------- |
+| **Performance**       | System should process incoming network events in near real-time | < 1 second latency from event ingestion to display |
+| **Scalability**       | Handle spikes in network traffic and scale horizontally         | Support 1M+ events/min with autoscaling            |
+| **Availability**      | System should be highly available to avoid monitoring gaps      | ≥ 99.99% uptime                                    |
+| **Reliability**       | Ensure no data loss during processing or under load             | Event replay or buffering in Kafka                 |
+| **Security**          | Secure sensitive customer data and network logs                 | TLS encryption, role-based access control (RBAC)   |
+| **Maintainability**   | System should be easy to update and debug                       | CI/CD, centralized logging, modular architecture   |
+| **Observability**     | Full visibility into system behavior and failures               | Prometheus + Grafana for metrics, ELK for logs     |
+| **Usability**         | Dashboards should be intuitive for ops teams                    | Issue identification in ≤ 3 clicks                 |
+| **Portability**       | Should run on cloud or on-premise                               | Docker + Kubernetes deployment                     |
+| **Compliance**        | Ensure compliance with telecom and data privacy regulations     | GDPR, TRAI, ISO/IEC 27001                          |
+| **Disaster Recovery** | Recover system state and event stream on failure                | RTO ≤ 30 mins, RPO ≤ 10 mins                       |
