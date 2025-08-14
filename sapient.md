@@ -941,4 +941,30 @@ No TODOs or commented code|Clean production-ready code
         ENV — Set environment variables
     ```
     
+### CI/CD
+**Answer**
+1. Syntax of script basic
 
+    ```
+    pipeline {
+        agent any
+        stages {
+            stage('Build') {
+                steps {
+                    sh 'mvn clean install'
+                }
+            }
+            stage('Test') {
+                steps {
+                    sh 'mvn test'
+                }
+            }
+            stage('Deploy') {
+                steps {
+                    sh './deploy.sh'  // your deployment script
+                }
+            }
+        }
+    }
+
+    ```
