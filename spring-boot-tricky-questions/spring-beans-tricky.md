@@ -463,3 +463,83 @@ Note: @Scope("prototype") beans do NOT get post-processors on every request.
 
 
 ### Classes involved (real Spring classes)
+**Ans**
+1. These names appear in stacktraces — memorize them
+    - Bean Definition → Structure
+        - `RootBeanDefinition`
+        - `GenericBeanDefinition`
+        - `AnnotatedGenericBeanDefinition`
+
+    - Factory that builds them
+        - `DefaultListableBeanFactory`
+        - `AbstractAutowireCapableBeanFactory`
+
+    - Constructor / Autowiring
+        - `ConstructorResolver`
+        - `DependencyDescriptor`
+
+    - Field/Setter Injection
+        - `AutowiredAnnotationBeanPostProcessor`
+
+
+### ApplicationContext vs BeanFactory (deep reality)
+**Ans**
+1. BeanFactory: Lowest level container — DI only
+    - no lifecycle events
+    - no context refresh
+    - no environment
+    - no @PostConstruct
+    - no @EventListener
+    - This is the engine.
+    - Class used: `DefaultListableBeanFactory`
+
+2. ApplicationContext: BeanFactory + ecosystem
+    - message sources
+    - environment
+    - events
+    - scanning
+    - AOP creation
+    - Used classes:
+        - `AnnotationConfigApplicationContext`
+        - `GenericApplicationContext`
+3. 🚨 Real Trap:
+    - 👉 BeanFactory builds objects only when requested (lazy by default)
+    - 👉 ApplicationContext eagerly creates singletons at startup
+
+
+### 💉 How Spring chooses Injection Strategy internally
+**Ans**
+1. ConstructorResolver:
+    - Finds @Autowired constructor
+    - If none → chooses single constructor
+    - If many → ambiguous → crash
+
+    - Field Injection:
+        - Handled by: `AutowiredAnnotationBeanPostProcessor`
+        - Which uses: 
+            - InjectionMetadata
+            - DependencyDescriptor
+
+2. Bean Lifecycle sequence (exact order)
+    ```
+    1. Instantiate (via constructor / factory)
+    2. Populate dependencies
+    3. BeanNameAware
+    4. BeanFactoryAware
+    5. BeanClassLoaderAware
+    6. BeanPostProcessor.beforeInitialization
+    7. @PostConstruct
+    8. InitializingBean.afterPropertiesSet
+    9. custom init-method
+    10. BeanPostProcessor.afterInitialization
+    11. AOP proxy
+    ```
+
+### Why does @Autowired work on private fields?
+**Ans** BeanPostProcessor uses reflection: Field.setAccessible(true). Not because Spring bypasses rules.
+
+### Why @Autowired on setter triggers earlier than @PostConstruct?
+**Ans**: Because DI happens during populate step before lifecycle callbacks.
+
+### Why prototype beans inside singleton behave like SINGLETON?
+**Ans**: 
