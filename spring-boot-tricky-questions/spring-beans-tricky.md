@@ -541,5 +541,250 @@ Note: @Scope("prototype") beans do NOT get post-processors on every request.
 ### Why @Autowired on setter triggers earlier than @PostConstruct?
 **Ans**: Because DI happens during populate step before lifecycle callbacks.
 
-### Why prototype beans inside singleton behave like SINGLETON?
-**Ans**: 
+
+### Self Invocation = No Proxy = NO AOP
+**Ans**
+1. Example:
+    ```
+    class A {
+    public void parent() {
+        child();  // internal call
+    }
+
+    @Transactional
+     public void child() {}
+    }
+    ```
+
+2. Why? Internal call = this.child() → bypasses proxy.
+
+### BeanFactoryPostProcessor vs BeanPostProcessor
+**Ans**: Huge difference
+1. BeanFactoryPostProcessor
+    - Runs before objects exist
+    - Modifies BeanDefinition metadata
+
+2. BeanPostProcessor
+    - Runs after bean is created
+    - Works on real objects
+    - Creates proxies
+
+3. Memorize:
+    - BFPP = modify plans
+    - BPP = modify houses
+
+
+### Context Refresh & SmartLifecycle
+**ANs**:
+1. Lifecycle is not just
+    - init
+    - destroy
+
+2. Advanced:
+    ```
+    SmartLifecycle
+    LifecycleProcessor
+    ApplicationRunner
+    CommandLineRunner
+    ```
+
+3. SmartLifecycle allows:
+    - ordered setup 
+    - dependency graph control
+    - graceful shutdown
+
+    - This is vital for:
+        - Kafka consumers
+        - Quartz jobs
+        - Schedulers
+        - Networking services
+
+
+### Proxy Flow Diagram (Clean)
+**Ans**
+```
+User Code Calls ServiceMethod
+    |
+    V
+Proxy (Dynamic JDK / CGLIB)
+    |
+    +-- intercept()
+            |
+            +-- Advisor chain
+            |      |- CachingInterceptor
+            |      |- TransactionInterceptor
+            |      |- MethodValidationInterceptor
+            |
+            V
+          Target Bean (Actual)
+
+```
+
+
+### Full Lifecycle DI → PostProcessor → Proxy
+**Ans**
+```
+Class loaded
+     ↓
+BeanDefinition created
+     ↓
+BeanFactoryPostProcessors
+     ↓
+createBeanInstance()   ← constructor injection
+     ↓
+populateBean()         ← autowire fields/setters
+     ↓
+initializeBean()
+     |
+     |- Aware interfaces
+     |- @PostConstruct
+     |- afterPropertiesSet()
+     |- @Bean(initMethod)
+     |
+     |- BeanPostProcessors.afterInitialization 🔥
+                   ↓
+                 Proxy
+
+```
+
+
+### What most seniors don’t know
+**Ans**
+1. BeanPostProcessors DO NOT depend on your beans
+    - They depend on BEAN DEFINITIONS
+
+2. DI NEVER happens on a proxy — only on the target
+    - Proxies are created AFTER dependency resolution
+
+3. FactoryBean products bypass many lifecycle callbacks
+
+### BeanDefinition metadata sources
+**Ans**: This is where the DI magic begins.
+1. Spring collects metadata from:
+    - ✔️ @ComponentScan
+    - @Bean methods
+    - Import selectors
+    - XML beans
+    - Property placeholders
+    - Custom loaders (YAML, ConfigData)
+
+2. Built from:
+    - AnnotatedBeanDefinition
+    - ScannedGenericBeanDefinition
+    - ConfigurationClassParser
+    - BeanDefinitionRegistryPostProcessor
+
+3. Deep flow:
+    ```
+    ComponentScanParser → ScannedGenericBeanDefinition
+    ConfigurationClassPostProcessor → @Bean → BeanMethodDefinition
+    XmlReader → GenericBeanDefinition
+    ```
+
+4. All unified inside: DefaultListableBeanFactory.beanDefinitionMap
+
+### Scoped Proxies: @RequestScope / @SessionScope
+**Ans**: Problem:
+1. A singleton bean needs a per-request/session dependency.
+    - Example:
+        ```
+        @Service
+        class InvoiceService {
+            @Autowired UserContext ctx;
+        }
+        ```
+    - UserContext is request scoped.
+    - InvoiceService is singleton.
+
+2. Special proxy solves this:
+    - Flow:
+        ```
+        UserContext Bean
+            ↓
+        Proxy → SpringScopeProxyFactoryBean
+            ↓
+        Target bean created per request/session
+        ```
+
+3. Proxy Behavior:
+    - The singleton sees only proxy
+    - Proxy delegates to actual target bean
+    - Target created per request/session
+    - Destroyed at request/session end
+
+4. Internal class:
+    - ScopedProxyFactoryBean
+
+5. Call stack:
+    ```
+    getBean("invoiceService") → proxy injected
+    ↓
+    When method invoked
+    ↓
+    ScopeContext.get(beanName)
+    ↓
+    Create target if missing
+    ↓
+    Forward call
+    ```
+
+### Architectural Diagram of Scoped Proxy
+```
+InvoiceService (Singleton)
+    |
+    └── UserContext (Proxy)
+            |
+            └── Session1:  UserContext[id=12]
+            └── Session2:  UserContext[id=91]
+
+```
+
+### Summary Cheatsheet
+**Ans**:
+1. SmartInstantiationAwareBeanPostProcessor
+
+    Influences constructor
+
+    Resolves circular deps
+
+    Creates early proxies
+
+2. Method-level beans
+
+    @Configuration → CGLIB
+
+    @Component → NEW instance each call
+
+3. Destroy ordering
+
+    Proxy.destroy()
+
+    Target.destroy()
+
+4. LazyInit vs SmartFactoryBean
+
+    Lazy proxies exist without target
+
+    Smart disables lazy
+
+5. MergedBeanDefinition
+
+    Final metadata
+
+    AOP works on merged, not raw
+
+6. BeanDefinition sources
+
+    @ComponentScan
+
+    @Bean
+
+    XML
+
+    @Import
+
+7. Scope proxies
+
+    Singleton holds proxy
+
+    Target created per session/request
