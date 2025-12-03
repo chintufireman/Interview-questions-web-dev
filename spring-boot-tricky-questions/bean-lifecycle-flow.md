@@ -17,3 +17,83 @@
     - After Init = Proxy Bean
 
 3. This one detail prevents 95% of your bugs
+
+### DI Flow with All Important Classes (FULL CHAIN)
+```
+ApplicationContext.refresh()
+      │
+      ▼
+BeanDefinitionReader → BeanDefinition
+      │
+      ▼
+DefaultListableBeanFactory
+      │
+      ▼
+getMergedLocalBeanDefinition()
+      │
+      ▼
+RootBeanDefinition
+      │
+      ▼
+SmartInstantiationAwareBeanPostProcessor
+  ├ predictBeanType()
+  ├ determineCandidateConstructors()
+  └ getEarlyBeanReference()
+      │
+      ▼
+createBeanInstance()
+  └ ConstructorResolver
+      │
+      ▼
+populateBean()
+  ├ inject fields/setters
+  └ resolveDependency()
+       ├ AutowireCandidateResolver
+       ├ qualifiers
+       ├ generics
+       └ scope/proxies
+      │
+      ▼
+initializeBean()
+  ├ BeanPostProcessor.beforeInit
+  ├ init/afterPropertiesSet
+  └ BeanPostProcessor.afterInit (AOP)
+      │
+      ▼
+Singleton Cache
+   ├ singletonObjects
+   ├ earlySingletonObjects
+   └ singletonFactories
+
+```
+
+### 🔥 Final complete ordered class list (memorize this)
+```
+ApplicationContext
+↓
+BeanDefinitionReader
+↓
+BeanDefinition
+↓
+DefaultListableBeanFactory
+↓
+MergedBeanDefinition (RootBeanDefinition)
+↓
+SmartInstantiationAwareBeanPostProcessor
+↓
+ConstructorResolver
+↓
+DefaultListableBeanFactory.resolveDependency()
+↓
+AutowireCandidateResolver
+↓
+BeanPostProcessor
+↓
+Proxying layer (AOP / Caching / Async)
+↓
+Singleton caches
+
+```
+
+## interview sentence for bean lifecycle
+**Ans**: Spring loads bean definitions, applies BeanFactoryPostProcessors, registers BeanPostProcessors, instantiates beans, injects dependencies, runs initialization callbacks, and then post-processes (AOP). FactoryBean runs before DI to produce the actual bean object.
